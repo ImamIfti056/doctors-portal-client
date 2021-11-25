@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -6,6 +6,7 @@ import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import useAuth from '../../../hooks/useAuth';
 
 const style = {
   position: 'absolute',
@@ -19,14 +20,45 @@ const style = {
   p: 4,
 };
 
-const BookingModal = ({openBooking, handleCloseBooking, booking, date}) => {
-
+const BookingModal = ({openBooking, handleCloseBooking, booking, date, setBookingSuccess}) => {
     const {name, time} = booking;
+    const {user} = useAuth();
+    
+    const initialBookingInfo = {patientName: user.displayName, email: user.email, phone: ''};
+    const [bookingInfo, setBookingInfo] = useState(initialBookingInfo);
+
+    const handleOnBlur = e => {
+        const field = e.target.name;
+        const value = e.target.value;
+        const newBookingInfo = {...bookingInfo};
+        newBookingInfo[field] = value;
+        setBookingInfo(newBookingInfo)
+    }
 
     const handleBookingSubmit = (e) => {
-        alert('submitting');
+        // Collecting Data
+        const appointment = {
+            ...bookingInfo,
+            time,
+            serviceName: name,
+            date: date.toLocaleDateString()
+        }
+        // Sending data to the server
+        fetch('http://localhost:5000/appointment', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(appointment)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.insertedId){
+                handleCloseBooking();
+                setBookingSuccess(true);
+            }
+        });
         e.preventDefault();
-        handleCloseBooking();
     }
 
     return (
@@ -60,17 +92,25 @@ const BookingModal = ({openBooking, handleCloseBooking, booking, date}) => {
                         label='Your Name'
                         type="text"
                         variant="standard"
+                        name="patientName"
+                        onBlur={handleOnBlur}
+                        defaultValue={user.displayName}
                     />
                     <TextField sx={{width: '90%', m:1}}
                         id="standard-search"
                         label='Your Email'
                         type="email"
                         variant="standard"
+                        name="email"
+                        onBlur={handleOnBlur}
+                        defaultValue={user.email}
                     />
                     <TextField sx={{width: '90%', m:1}}
                         id="standard-search"
                         label='Phone'
+                        name="phone"
                         type="number"
+                        onBlur={handleOnBlur}
                         variant="standard"
                     />
                     <TextField sx={{width: '90%', m:1}}

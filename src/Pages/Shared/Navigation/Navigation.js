@@ -27,10 +27,14 @@ const Navigation = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Doctors Portal
           </Typography>
+          <NavLink style={{textDecoration: 'none', color: 'white'}} to='/home'><Button color="inherit">Home</Button></NavLink>
           <NavLink style={{textDecoration: 'none', color: 'white'}} to='/appointment'><Button color="inherit">Appointment</Button></NavLink>
           {
             user?.email ?
-            <Button style={{textDecoration: 'none', color: 'white'}} onClick={logOut} color="inherit">Logout</Button>
+            <Box>
+              <NavLink style={{textDecoration: 'none', color: 'white'}} to='/dashboard'><Button color="inherit">Dashboard</Button></NavLink>
+              <Button style={{textDecoration: 'none', color: 'white'}} onClick={logOut} color="inherit">Logout</Button>
+            </Box>
             :
             <NavLink style={{textDecoration: 'none', color: 'white'}} to='/login'><Button color="inherit">Login</Button></NavLink>
           }

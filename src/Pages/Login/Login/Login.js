@@ -1,11 +1,15 @@
-import { Button, Container, Grid, Typography } from '@mui/material';
+import { Button, Container, Grid, Typography, Alert } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import React, {useState} from 'react';
 import { NavLink } from 'react-router-dom';
 import loginImg from '../../../images/login.png';
+import useAuth from '../../../hooks/useAuth';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const Login = () => {
     const [loginData, setLoginData] = useState({});
+
+    const {user, loginUser, isLoading, authError, googleSignIn} = useAuth();
 
     const handleOnChange = e => {
         const field = e.target.name;
@@ -18,7 +22,7 @@ const Login = () => {
 
     const handleLoginSubmit = e => {
         e.preventDefault();
-        alert('subml')
+        loginUser(loginData.email, loginData.password);
     }
 
     return (
@@ -28,7 +32,7 @@ const Login = () => {
                     <Typography variant='h4' sx={{color: 'info.main', fontWeight: 500}}>
                         LOGIN
                     </Typography>
-                    <form onSubmit={handleLoginSubmit}>
+                    {!isLoading && <form onSubmit={handleLoginSubmit}>
                     <TextField
                         sx={{width: '80%', m: 1}}
                         id="standard-search"
@@ -37,6 +41,7 @@ const Login = () => {
                         name="email"
                         onChange={handleOnChange}
                         variant="standard"
+                        required
                     />
                     <TextField
                         sx={{width: '80%', m:1}}
@@ -47,10 +52,16 @@ const Login = () => {
                         onChange={handleOnChange}
                         autoComplete="current-password"
                         variant="standard"
+                        required
                     />
-                    <Button type='submit' variant='contained' sx={{width: '80%', m:1, my: 2}}>Login</Button>
+                    <Button type='submit' variant='contained' sx={{width: '80%', m:1}}>Login</Button>
+                    <Button onClick={googleSignIn} variant='contained' sx={{width: '80%', m:1, mb: 2}}>Continue with Google</Button>
                     <NavLink to='/register'style={{textDecoration:'none'}}><Button variant='text'>New user? Please Register</Button></NavLink>
-                    </form>
+                    </form>}
+                    {isLoading && <CircularProgress/>}
+                    {user?.email && <Alert severity="success">Login Successful!</Alert>}
+                    {authError && <Alert severity="error">{authError}</Alert>}
+                    {user.email && <NavLink to='/' style={{textDecoration:'none'}}><Button variant='contained'>Go to Home</Button></NavLink>}
                 </Grid>
                 <Grid xs={12} sm={6} md={7}>
                     <img src={loginImg} style={{width: '70%'}} alt='login-img'/>
