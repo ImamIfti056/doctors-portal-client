@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAuth, GoogleAuthProvider, updateProfile, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, updateProfile, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, getIdToken } from 'firebase/auth';
 import initializeFirebase from "../Pages/Login/Firebase/firebase.init";
 
 // initialize firebase app
@@ -9,6 +9,8 @@ const useFirebase = () => {
     const [user, setUser] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [authError, setAuthError] = useState('');
+    const [admin, setAdmin] = useState(false);
+    const [token, setToken] = useState('');
 
     const auth = getAuth();
     const googleProvider = new GoogleAuthProvider();
@@ -22,6 +24,9 @@ const useFirebase = () => {
             const newUser = {email, displayName: name};
             setUser(newUser);
 
+            // SAVE USER TO DATABASE
+            saveUser(email, name, 'POST');
+
             // SENDING USERNAME TO FIREBASE
             updateProfile(auth.currentUser, {
                 displayName: name
@@ -34,10 +39,12 @@ const useFirebase = () => {
     }
 
     // LOGIN USER
-    const loginUser = (email, password) => {
+    const loginUser = (email, password, location, history) => {
         setIsLoading(true);
         signInWithEmailAndPassword(auth, email, password)
         .then((result) => {
+            const destination = location?.state?.from || '/';
+            history.push(destination);
             setAuthError('');
         }) 
         .catch((error) => setAuthError(error.message))
@@ -50,6 +57,7 @@ const useFirebase = () => {
         signInWithPopup(auth, googleProvider)
         .then((result) => {
             setAuthError('');
+            saveUser(result.user.email, result.user.displayName, 'PUT');
             
         }).catch((error) => {
             setAuthError(error.message)
@@ -60,7 +68,11 @@ const useFirebase = () => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if(user){
-                setUser(user)
+                setUser(user);
+                getIdToken(user)
+                .then(idToken => {
+                    setToken(idToken)
+                })
             } else{
                 setUser({})
             }
@@ -68,6 +80,13 @@ const useFirebase = () => {
         });
         return () => unsubscribe;
     },[])
+
+    // CHECKING IF ADMIN
+    useEffect(() => {
+        fetch(`http://localhost:5000/users/${user.email}`)
+        .then(res => res.json())
+        .then(data => setAdmin(data.admin))
+    },[user.email])
 
     // SIGNOUT USER
     const logOut = () => {
@@ -80,11 +99,26 @@ const useFirebase = () => {
         .finally(() => setIsLoading(false));
     }
 
+    // SAVE USER TO DATABASE
+    const saveUser = (email, displayName, method) => {
+        const user = {email, displayName};
+        fetch('http://localhost:5000/users', {
+            method: method,
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(user)
+        }).then(res => res.json())
+        .then(data => {})
+    }
+
     return{
         user,
+        admin,
         isLoading,
         googleSignIn,
         authError,
+        token,
         registerUser,
         loginUser,
         logOut
