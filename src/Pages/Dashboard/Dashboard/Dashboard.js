@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {Link} from 'react-router-dom';
-import PropTypes from 'prop-types';
+import {Link, Outlet} from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -17,12 +16,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { Button } from '@mui/material';
-import DashboardHome from '../DashboardHome/DashboardHome';
-import MakeAdmin from '../MakeAdmin/MakeAdmin';
-import AddDoctor from '../AddDoctor/AddDoctor';
-import { Switch, Route, useRouteMatch } from "react-router-dom";
 import useAuth from '../../../hooks/useAuth';
-import AdminRoute from '../../Login/AdminRoute/AdminRoute';
 
 
 
@@ -31,7 +25,6 @@ const drawerWidth = 200;
 function Dashboard(props) {
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  let { path, url } = useRouteMatch();
   const {admin} = useAuth();
 
   const handleDrawerToggle = () => {
@@ -43,11 +36,11 @@ function Dashboard(props) {
       <Toolbar />
       <Divider />
       <Link to='/appointment'><Button color="inherit">Book another Appointment</Button></Link>
-      <Link to={`${url}`}><Button color="inherit">Dashboard</Button></Link>
+      <Link to={`/dashboard`}><Button color="inherit">Dashboard</Button></Link>
       {
         admin && <Box>
-          <Link to={`${url}/makeAdmin`}><Button color="inherit">Make Admin</Button></Link>
-          <Link to={`${url}/addDoctor`}><Button color="inherit">Add Doctor</Button></Link>
+          <Link to={`/dashboard/makeAdmin`}><Button color="inherit">Make Admin</Button></Link>
+          <Link to={`/dashboard/addDoctor`}><Button color="inherit">Add Doctor</Button></Link>
         </Box>
       }
       <List>
@@ -127,28 +120,10 @@ function Dashboard(props) {
         sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
       >
         <Toolbar />
-        <Switch>
-          <Route exact path={path}>
-            <DashboardHome></DashboardHome>
-          </Route>
-          <AdminRoute path={`${path}/makeAdmin`}>
-            <MakeAdmin></MakeAdmin>
-          </AdminRoute>
-          <AdminRoute path={`${path}/addDoctor`}>
-            <AddDoctor></AddDoctor>
-          </AdminRoute>
-        </Switch>
+        <Outlet/>
       </Box>
     </Box>
   );
 }
-
-Dashboard.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window: PropTypes.func,
-};
 
 export default Dashboard;

@@ -39,12 +39,12 @@ const useFirebase = () => {
     }
 
     // LOGIN USER
-    const loginUser = (email, password, location, history) => {
+    const loginUser = (email, password, location, navigate) => {
         setIsLoading(true);
         signInWithEmailAndPassword(auth, email, password)
         .then((result) => {
             const destination = location?.state?.from || '/';
-            history.push(destination);
+            navigate(destination);
             setAuthError('');
         }) 
         .catch((error) => setAuthError(error.message))
